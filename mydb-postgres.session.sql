@@ -1,193 +1,146 @@
-CREATE TABLE STUDENTS (
-    id serial PRIMARY KEY,
+CREATE SCHEMA second;
+CREATE TABLE second.students (
+    id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     first_name VARCHAR(70) NOT NULL CHECK (length(first_name) > 0), 
     last_name VARCHAR(70) NOT NULL CHECK (length(last_name) > 0),
     birthday DATE NOT NULL CHECK (birthday <= CURRENT_DATE), 
-    gender VARCHAR(30) NOT NULL CHECK (length(gender) > 0)
+    phone_number VARCHAR(15) NOT NULL CHECK (length(phone_number) > 0), 
+    group_name VARCHAR(10) NOT NULL CHECK (group_name IN ('A1', 'B2', 'C3')), -- example groups
+    avg_mark SMALLINT NOT NULL CHECK (avg_mark BETWEEN 0 AND 100), 
+    gender VARCHAR(30) NOT NULL CHECK (gender IN ('Male', 'Female', 'Other')), -- gender values
+    entered_at SMALLINT NOT NULL CHECK (entered_at <= EXTRACT(YEAR FROM CURRENT_DATE)), 
+    department VARCHAR(70) NOT NULL CHECK (department IN ('Computer Science', 'Mathematics', 'Physics')) -- departments
 );
 
-CREATE TABLE COURSES (
-    id serial PRIMARY KEY, 
-    title VARCHAR(100) NOT NULL CHECK (length(title) > 0),
-    description TEXT NOT NULL CHECK (length(description) > 0),
-    hours INTEGER NOT NULL CHECK (hours > 0)
-)
-
-CREATE TABLE EXAMS (
-    id serial PRIMARY KEY,
-    id_student INTEGER NOT NULL REFERENCES STUDENTS(id),
-    id_course INTEGER NOT NULL REFERENCES COURSES(id),
-    mark INTEGER CHECK (mark >= 0 AND mark <= 100)
-)
-
-
-INSERT INTO STUDENTS (first_name, last_name, birthday, gender )
-VALUES ('jan', 'trudoe', '1993-09-02', 'male'),
-('petro', 'petrenko', '1992-09-03', 'male'),
-('anna', 'doe', '1998-09-03', 'female'),
-('mari', 'doe', '2000-07-04', 'female');
-
-INSERT INTO COURSES (title, description, hours)
-VALUES( 'Mathematics', 'Introduction to Mathematics', 40),
-('Programming', 'Basics of Programming', 45),
-('Chemistry', 'Basics of Chemistry', 50),
-('Information Technologies', 'Basics of Tech', 30)
-
-INSERT INTO EXAMS (id_student, id_course, mark)
-VALUES (2, 1, 2),
-(3, 2, 3),
-(4, 3, NULL),
-(1, 1, 5),
-(2, 2, 4.5),
-(3, 3, 1),
-(4, 2, NULL),
-(2, 4, 2),
-(1, 4, 4)
+INSERT INTO second.students (first_name, last_name, birthday, phone_number, group_name, avg_mark, gender, entered_at, department)
+VALUES 
+('Olena', 'Shevchenko', '2002-04-15', '+380671112233', 'A1', 85, 'Female', 2020, 'Computer Science'),
+('Anton', 'Antonov', '2001-09-30', '+380501234567', 'B2', 92, 'Male', 2019, 'Mathematics'),
+('Sofiia', 'Bondar', '2003-01-10', '+380991112233', 'C3', 76, 'Female', 2021, 'Physics'),
+('Dmytro', 'Melnyk', '2002-06-21', '+380933334455', 'A1', 88, 'Male', 2020, 'Computer Science'),
+('Anastasiia', 'Tkachenko', '2000-12-05', '+380661234567', 'B2', 90, 'Female', 2018, 'Mathematics'),
+('Andrii', 'Hnatyuk', '2001-11-18', '+380631112233', 'C3', 70, 'Male', 2019, 'Physics'),
+('Mycola', 'Polishchuk', '2002-02-22', '+380731234567', 'A1', 95, 'Female', 2020, 'Computer Science'),
+('Oleksii', 'Lysenko', '2003-03-11', '+380951234567', 'B2', 81, 'Male', 2021, 'Mathematics'),
+('Maria', 'Voronina', '2000-07-14', '+380681122334', 'C3', 78, 'Female', 2018, 'Physics'),
+('Yaroslav', 'Petrenko', '2001-05-09', '+380991234567', 'A1', 84, 'Other', 2019, 'Computer Science'),
+('Viktoriia', 'Ivanenko', '2001-08-25', '+380671234000', 'B2', 87, 'Female', 2019, 'Mathematics'),
+('Serhii', 'Dubovyk', '2002-05-17', '+380501234888', 'C3', 69, 'Male', 2020, 'Physics'),
+('Yuliia', 'Zhuk', '2000-11-01', '+380931117722', 'A1', 91, 'Female', 2018, 'Computer Science'),
+('Artem', 'Rudenko', '2003-04-12', '+380661234999', 'B2', 73, 'Male', 2021, 'Mathematics'),
+('Iryna', 'Kravchenko', '2001-07-29', '+380991110011', 'C3', 80, 'Female', 2019, 'Physics'),
+('Taras', 'Yatsenko', '2002-10-19', '+380671112244', 'A1', 85, 'Male', 2020, 'Computer Science'),
+('Natalia', 'Moroz', '2000-09-13', '+380631234123', 'B2', 77, 'Female', 2018, 'Mathematics'),
+('Roman', 'Bezruk', '2003-01-25', '+380951100000', 'C3', 82, 'Male', 2021, 'Physics'),
+('Daria', 'Hlushko', '2002-03-04', '+380731111122', 'A1', 94, 'Female', 2020, 'Computer Science'),
+('Maksym', 'Kostenko', '2001-06-06', '+380681234555', 'B2', 89, 'Male', 2019, 'Mathematics');
 
 
--- *****************1
+-------------------1
+CREATE VIEW students_age AS SELECT 
+  first_name || ' ' || last_name AS name, 
+  EXTRACT(YEAR FROM birthday) AS birth_year
+FROM second.students
+ORDER BY birth_year ASC;
+
+-------------------3
+
+CREATE VIEW student_avg_marks AS
+SELECT 
+  first_name || ' ' || last_name AS name, 
+  AVG(avg_mark) AS avg_student_mark
+FROM second.students
+GROUP BY name
+ORDER BY avg_student_mark DESC;
+
+
+-------------------4
+
+SELECT *
+FROM second.students
+LIMIT 6
+OFFSET 6;
+
+------------------5
+
+CREATE VIEW best_students AS
+SELECT 
+  first_name || ' ' || last_name AS name, 
+  AVG(avg_mark) AS avg_student_mark
+FROM second.students
+GROUP BY name
+ORDER BY avg_student_mark DESC
+LIMIT 3;
+
+
+------------------6
+
+SELECT MAX(avg_mark) AS max_avg_mark
+FROM second.students;
+
+------------------7
 
 SELECT 
-    s.first_name, 
-    s.last_name, 
-    c.title AS course_title
-FROM 
-    EXAMS e
-JOIN 
-    STUDENTS s ON e.id_student = s.id
-JOIN 
-    COURSES c ON e.id_course = c.id;
+  SUBSTRING(first_name, 1, 1) || '. ' || last_name AS name,
+  '+380' || SUBSTRING(phone_number, 4, 2) || '*******' AS hidden_phone
+FROM second.students;
 
-    --***************************2
-    
-    CREATE VIEW student_courses AS
-SELECT 
-    s.first_name, 
-    s.last_name, 
-    c.title AS course_title
-FROM 
-    EXAMS e
-JOIN 
-    STUDENTS s ON e.id_student = s.id
-JOIN 
-    COURSES c ON e.id_course = c.id;
+------------------8
 
---*********************************3
-SELECT e.mark
-FROM EXAMS e
-JOIN STUDENTS s ON e.id_student = s.id
-JOIN COURSES c ON e.id_course = c.id
-WHERE s.first_name = 'petro'
-  AND s.last_name = 'petrenko'
-  AND c.title = 'Programming';
+SELECT *
+FROM second.students
+WHERE first_name = 'Anton' AND last_name = 'Antonov';
 
-  --********************4
+------------------9
 
-  SELECT   s.first_name || ' ' || s.last_name AS fullname
-  FROM STUDENTS s 
-  JOIN EXAMS e ON s.id=e.id_student
-  WHERE e.mark < 3.5
+SELECT *
+FROM second.students
+WHERE birthday BETWEEN '2005-01-01' AND '2008-01-01';
 
-  --********5
-SELECT s.first_name
-FROM EXAMS e
-JOIN STUDENTS s ON e.id_student = s.id
-JOIN COURSES c ON e.id_course = c.id
-WHERE c.title = 'Programming'
-  AND e.mark IS NOT NULL;
+-----------------10
 
-  --************************6
+SELECT *
+FROM second.students
+WHERE first_name = 'Mycola' AND avg_mark >= 45;
 
-
-SELECT   COUNT(e.id_course) AS courses_attended,
-  AVG(e.mark) AS average_mark
-FROM EXAMS e
-JOIN STUDENTS s ON e.id_student = s.id
-JOIN COURSES c ON e.id_course = c.id
-
-
-  --*********************7
-
-    SELECT   s.first_name || ' ' || s.last_name AS fullname
-  FROM STUDENTS s 
-  JOIN EXAMS e ON s.id=e.id_student
-   WHERE (
-    SELECT AVG(mark) FROM EXAMS
-) > 4.0;
-
------*******9
-SELECT s.first_name || ' ' || s.last_name AS fullname
-FROM STUDENTS s
-WHERE EXTRACT(MONTH FROM s.birthday) = EXTRACT(MONTH FROM 
-(SELECT birthday FROM STUDENTS WHERE first_name = 'petro' AND last_name = 'petrenko'))
-  AND EXTRACT(DAY FROM s.birthday) = EXTRACT(DAY FROM
-   (SELECT birthday FROM STUDENTS WHERE first_name = 'petro' AND last_name = 'petrenko'));
-
-
-----***************************10
+-----------------11
 
 SELECT 
-  s.first_name, 
-  e.id_student, 
-  AVG(e.mark) AS average_mark
-FROM EXAMS e
-JOIN STUDENTS s ON e.id_student = s.id
-GROUP BY e.id_student, s.first_name
-HAVING AVG(e.mark) > (
-  SELECT AVG(e2.mark)
-  FROM EXAMS e2
-  JOIN STUDENTS s2 ON e2.id_student = s2.id
-  WHERE s2.first_name = 'petro' AND s2.last_name = 'petrenko'
-);
+  group_name, 
+  COUNT(*) AS students_amount
+FROM second.students
+GROUP BY group_name;
 
----**************11
+----------------12
+SELECT 
+ COUNT(*) AS students_amount
+FROM second.students
+WHERE entered_at=2018
+
+----------------13
 
 SELECT 
- c.title AS course_title
-FROM COURSES c
-WHERE c.hours> (
-  SELECT c2.hours
-  FROM COURSES c2
-  WHERE c2.title= 'Information Technologies'
-);
+ first_name || ' ' || last_name AS name, phone_number
+FROM second.students
+WHERE phone_number LIKE '+38098';
 
---**************12
+----------------14
 
 SELECT 
-  s.first_name,
-  s.last_name,
-  c.title AS course_title,
-  e.mark
-FROM EXAMS e
-JOIN STUDENTS s ON e.id_student = s.id
-JOIN COURSES c ON e.id_course = c.id
-WHERE e.mark > (
-  SELECT e2.mark
-  FROM EXAMS e2
-  JOIN STUDENTS s2 ON e2.id_student = s2.id
-  WHERE s2.first_name = 'petro' AND s2.last_name = 'petrenko'
-  ORDER BY e2.mark DESC
-  LIMIT 1
-);
+  department, 
+   AVG(avg_mark) AS avg_avg_mark
+FROM second.students
+WHERE gender= 'female'
+GROUP BY  department
+ORDER BY avg_avg_mark DESC;
 
-----**************13
+----------------15
+
 SELECT 
-  s.first_name,
-  s.last_name,
-  c.title AS course_title,
-  e.mark
-FROM EXAMS e
-JOIN STUDENTS s ON e.id_student = s.id
-JOIN COURSES c ON e.id_course = c.id
--- WHERE e.mark >=5  ???
-
-
-
-
-
-
---*********8
-SELECT c.title AS course
-FROM COURSES c
-LEFT JOIN EXAMS e ON c.id = e.id_course
-WHERE e.id_course IS NULL;
+  entered_at,
+  MIN(avg_mark) AS min_avg_mark
+FROM second.students
+WHERE department = 'Computer Science' AND EXTRACT(MONTH FROM birthday) IN (6,7,8)
+GROUP BY entered_at
+HAVING MIN(avg_mark) > 3.5
+ORDER BY entered_at;
